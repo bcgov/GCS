@@ -99,35 +99,33 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                    tags$legend(h3("Data selection")),
                    column(width = 12,
                           column(width = 6,
-                                 tags$fieldset(
-                                   tags$legend(h4("File to geocode (.csv):")),
-                                   fileInput(inputId = "geo_input", 
-                                             label = NULL,
-                                             accept = c(".csv"))
-                                 ),
-                                 tags$fieldset(
-                                   tags$legend(h4("Field containing postal codes:")),
-                                   selectInput(inputId = "upload_field",
-                                               label = NULL,
-                                               choices = c(""))
-                                 ),
-                                 tags$fieldset(
-                                   tags$legend(h4("GCS version to use:")),
-                                   selectInput(inputId = "gcs_version",
-                                               label = NULL,
-                                               choice = sort(str_replace(list.files("data", pattern = "*.rds"), ".rds", ""), decreasing = TRUE))
-                                 )
+                                 
+                                 fileInput(inputId = "geo_input", 
+                                           label = h4("File to geocode (.csv):"),
+                                           accept = c(".csv"),
+                                           buttonLabel = "Browse...",
+                                           placeholder = NULL
+                                           ),
+                                 selectInput(inputId = "upload_field",
+                                             label = h4("Field containing postal codes:"),
+                                             choices = c(""),
+                                             selectize= FALSE,
+                                             multiple = FALSE,
+                                             size = 5),
+                                 selectInput(inputId = "gcs_version",
+                                             label = h4("GCS version to use:"),
+                                             choice = sort(str_replace(list.files("data", pattern = "*.rds"), ".rds", ""), decreasing = TRUE),
+                                             selectize= FALSE,
+                                             multiple = FALSE,
+                                             size = 5)
                           ),
                           column(width = 6,
-                                 tags$fieldset(
-                                   tags$legend(h4("GCS fields to return (Ctrl or Shift for multiple):")),
                                      selectInput(inputId = "gcs_fields",
-                                                 label = NULL,
+                                                 label = h4("GCS fields to return (Ctrl or Shift for multiple):"),
                                                  choices = c(" "),
                                                  selectize= FALSE,
                                                  multiple = TRUE,
                                                  size = 20)
-                          )
                         )
                    )
                  ),
