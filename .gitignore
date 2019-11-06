@@ -2,6 +2,12 @@
 .Rhistory
 .RData
 .Ruserdata
-/data
-/rsconnect
-GCS.Rproj
+*.Rproj
+*.lnk
+# data files
+*.html
+*.xlsx
+*.csv
+*.rds
+/app/data/*
+/sandbox/*

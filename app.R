@@ -1,148 +1,280 @@
-library(shiny)
-library(magrittr)
-library(tidyverse)
-library(data.table)
-library(grid)
-library(writexl)
-library(shinyjs)
+# This is a Shiny web application. You can run the application locally by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#   http://shiny.rstudio.com/
+#
+#   http://rstudio.github.io/shinydashboard/get_started.html
+#
+# To deploy an update, update code and data, then load >library(rsconnect), set working
+# directory to app.R directory and >deployApp(appName = "GCS_app", appId = 1065708)
+
+#####
+# METADATA for app
+updateDate <- "September 2019"
+
+## load libraries  ----
+## installs any missing packages this script uses
+if (!require('tidyverse')) install.packages('tidyverse')
+if (!require('shiny')) install.packages('shiny')
+if (!require('shinydashboard')) install.packages('shinydashboard')
+if (!require('rsconnect')) install.packages('rsconnect')
+if (!require('DT')) install.packages('DT')
+if (!require('GAlogger')) devtools::install_github("bnosac/GAlogger")
+if (!require('data.table')) install.packages('data.table')
+
 options(stringsAsFactors = FALSE)
 options(shiny.maxRequestSize=100*1024^2)
 
+ga_set_tracking_id("UA-150850915-4")
+ga_set_approval(consent = TRUE)
+ga_collect_pageview(page = "/GCS_app")
+
 # Define UI for app that draws a histogram ----
-ui <- navbarPage("GeoCoding Self-Service", 
+ui <- fluidPage(title = "Geocoding Self-Service", 
+                theme = "bootstrap.css",
+                HTML("<html lang='en'>"),
 
-      tabPanel("GeoCoding",
-               useShinyjs(),
-               h2("GeoCoding Self-Service (GCS) Application"),
-               br(),
-               
-               h3("How to use the geocoding application"),
-               br(),
-               p("1 - Select a file to geocode by clicking the Browse button below. The file should be in .csv (comma-separated values) format
-                 and include at least one column with a header listing the postal codes to be geocoded."),
-               p("2 - Select the field from your file containing the postal codes to be geocoded"),
-               p("3 - Select the GCS version to use. A new version is released every quarter following the naming convention GCS_YYYYMM."),
-               p("4 - Select the GCS fields you wnat your postal codes to be geocoded to."),
-               p("5 - Click Geocode Input File to begin the process. It should take a few seconds."),
-               p("6 - When the geocoding is done, you can click the Download Results button to retrieve a .csv copy of your geocoded postal codes."),
-               
-               br(),
-               
-               fileInput(inputId = "geo_input", 
-                         label = "File to geocode (.csv):",
-                         accept = c(".csv")),
-               
-               selectInput(inputId = "upload_field",
-                           label = "Field containing postal codes:",
-                           choices = c("")
-                           ),
-               
-               br(),
-               
-               selectInput(inputId = "gcs_version",
-                           label = "GCS version to use:",
-                           choice = str_replace(list.files("data"), ".csv", "")
-                           ),
-               
-               checkboxGroupInput(inputId = "gcs_fields",
-                                  label = "GCS fields to return:",
-                                  choices = c(" ")
-                                  ),
-               
-               br(),
-               
-               actionButton(inputId = "geo_button",
-                            label = "Geocode Input File"
-                            ),
-               
-               textOutput(outputId = "geo_progress"),
-               
-               br(),
-               
-               downloadButton(outputId = "download_button", label = "Download Results")
-               
-               
-               ),
-      
-      tabPanel("User Guide", 
-               h2("GeoCoding Self-Service User Guide"),
-               p("Click the download button below to get a PDF copy of the GeoCoding Self-Service User Guide. You can also
-                 read it below."),
-               downloadButton(outputId = "downloadGuide", "Download"),
-               includeHTML("GCS_DefinitionsWeb.htm")
-               ),
-      
-      tabPanel("Lookup Tables", 
-               h2("GeoCoding Self-Service Fields Lookup Tables"),
-               p("The lookup tables can be used to relate field value returned by the GeoCoding Self-Service to a region's full name. 
-                 Click the download button below to get a copy of the tables."),
-               downloadButton(outputId = "downloadLookup", "Download")
+      fluidRow(
+        column(width = 12, 
+               style = "background-color:#003366; border-bottom:2px solid #fcba19;",
+               tags$header(class="header", style="padding:0 0px 0 0px; display:flex; height:80px; width:100%;",
+                           tags$div(class="banner", style="display:flex; justify-content:flex-start; align-items:center; margin: 0 10px 0 10px",
+                                    a(href="https://www2.gov.bc.ca/gov/content/data/about-data-management/bc-stats",
+                                      img(src = "bcstats_logo_rev.png", title = "BC Stats", height = "80px", alt = "British Columbia - BC Stats"),
+                                      onclick="gtag"
+                                    ),
+                                    h1("BC Stats - Geocoding Self-Service", style="font-weight:400; color:white; margin: 5px 5px 0 18px;")
+                           )
                )
-
-      
+        ),
+        column(width = 12,
+               tags$fieldset(
+                 tags$legend(h2("How to use the geocoding self-service application")),
+                 p("To use the geocoding self-service (GCS), follow the instructions below. You can also download the user guide to access more detailed instructions
+                   and definitions of all the fields available. Lookup tables linking boundary codes to regions' names can also be downloaded."),
+                 tags$ol(
+                   tags$li("Select a file to geocode by clicking the Browse button below. The file should be in .csv (comma-separated values) format
+                 and include at least one column with a header listing the postal codes to be geocoded."),
+                   tags$li("Select the field from your file containing the postal codes to be geocoded."),
+                   tags$li("Select the GCS version to use. A new version is released every quarter following the naming convention GCS_YYYYMM."),
+                   tags$li("Select the GCS fields you want your postal codes to be geocoded to. Use the Ctrl or Shift key to select multiple entries."),
+                   tags$li("Click the 'Geocode Input File' button to begin the process. It should take a few seconds. 
+                           When geocoding is done, results will appear in a table. Note that the table will always include the 'ACTIVE' field to indicate
+                           if a postal code was in use (Y) or retired (N) for the selected GCS version."),
+                   tags$li("Click the 'Download Results' button to retrieve a .csv copy of your geocoded postal codes."),
+                   style="font-size:14px; color:#494949"
+                   ),
+                 br()
+               )
+        ),
+        column(width = 12,
+               sidebarLayout(
+                 sidebarPanel(style="background-color:#F2F2F2;",
+                   tags$fieldset(
+                     tags$legend(h3("Geocoding self-service user guide")),
+                     p("Click the 'Download user guide' button below to get a PDF copy of the geocoding self-service user guide. 
+                       The guide includes detailed instructions and definitions of the fields available."),
+                     downloadButton(outputId = "downloadGuide", "Download user guide")
+                   ),
+                   br(), 
+                   tags$fieldset(
+                     tags$legend(h3("GeoCoding self-service fields lookup tables")),
+                     p("Click the 'Download lookup tables' button below to get a copy of the lookup tables. 
+                       The lookup tables can be used to relate field value returned by the geocoding self-service to a region's full name."),
+                     downloadButton(outputId = "downloadLookup", "Download lookup tables")
+                     
+                   ),
+                   br(), 
+                   tags$fieldset(
+                     tags$legend(h3("Additonal information")),
+                     HTML(paste0("Produced by BC Stats ", "<br>", "Last updated: ", updateDate))
+                   )
+               
+               ),
+               mainPanel(
+                 tags$fieldset(
+                   style = "margin-top:20px;",
+                   tags$legend(h3("Data selection")),
+                   column(width = 12,
+                          column(width = 6,
+                                 tags$fieldset(
+                                   tags$legend(h4("File to geocode (.csv):")),
+                                   fileInput(inputId = "geo_input", 
+                                             label = NULL,
+                                             accept = c(".csv"))
+                                 ),
+                                 tags$fieldset(
+                                   tags$legend(h4("Field containing postal codes:")),
+                                   selectInput(inputId = "upload_field",
+                                               label = NULL,
+                                               choices = c(""))
+                                 ),
+                                 tags$fieldset(
+                                   tags$legend(h4("GCS version to use:")),
+                                   selectInput(inputId = "gcs_version",
+                                               label = NULL,
+                                               choice = sort(str_replace(list.files("data", pattern = "*.rds"), ".rds", ""), decreasing = TRUE))
+                                 )
+                          ),
+                          column(width = 6,
+                                 tags$fieldset(
+                                   tags$legend(h4("GCS fields to return (Ctrl or Shift for multiple):")),
+                                     selectInput(inputId = "gcs_fields",
+                                                 label = NULL,
+                                                 choices = c(" "),
+                                                 selectize= FALSE,
+                                                 multiple = TRUE,
+                                                 size = 20)
+                          )
+                        )
+                   )
+                 ),
+                 br(),
+                 
+                 tags$fieldset(
+                   tags$legend(h3("Actions")),
+                   column(width = 12,
+                          actionButton(inputId = "geo_button", label = "Geocode input file"),
+                          actionButton(inputId = "resetButton", label = "Reset selection"),
+                          downloadButton(outputId = "download_button", label = "Download results")
+                   )
+                 ),
+                 
+                 br(),br(),
+                 DTOutput("table"),
+                 br()
+               )
+            )
+         ),
+         column(width = 12,
+               style = "background-color:#003366; border-top:2px solid #fcba19;",
+               
+               tags$footer(class="footer",
+                           tags$div(class="container", style="display:flex; justify-content:center; flex-direction:column; text-align:center; height:46px;",
+                                    tags$ul(style="display:flex; flex-direction:row; flex-wrap:wrap; margin:0; list-style:none; align-items:center; height:100%;",
+                                            tags$li(a(href="https://www2.gov.bc.ca/gov/content/home", "Home", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
+                                            tags$li(a(href="https://www2.gov.bc.ca/gov/content/home/disclaimer", "Disclaimer", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
+                                            tags$li(a(href="https://www2.gov.bc.ca/gov/content/home/privacy", "Privacy", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
+                                            tags$li(a(href="https://www2.gov.bc.ca/gov/content/home/accessibility", "Accessibility", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
+                                            tags$li(a(href="https://www2.gov.bc.ca/gov/content/home/copyright", "Copyright", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;")),
+                                            tags$li(a(href="https://www2.gov.bc.ca/StaticWebResources/static/gov3/html/contact-us.html", "Contact", style="font-size:1em; font-weight:normal; color:white; padding-left:5px; padding-right:5px; border-right:1px solid #4b5e7e;"))
+                                    )
+                           )
+               )
+        )
+      )
     )
     
 
 # Define server logic required to draw a histogram ----
 server <- function(input, output, session) {
-
+  
+  ## reactive resetButton send analytics when reset ----
+  observeEvent(input$resetButton, {
+    
+    ga_collect_event(event_category = "resetButton", event_label = "Reset", event_action = "Reset application")
+    
+    ## just reload the session
+    session$reload()
+    
+  })
+  
   observeEvent(input$geo_input, {
     head <- colnames(read.csv(input$geo_input$datapath))
     updateSelectInput(session, "upload_field", choices = list(head))
   })
   
   observeEvent(input$gcs_version, {
-    head <- colnames(read.csv(paste0("data/", input$gcs_version, ".csv"), nrows = 10) %>% select(-POSTALCODE))
-    updateCheckboxGroupInput(session, "gcs_fields", choices = head)
+    head <- colnames(readRDS(paste0("data/", input$gcs_version, ".rds")) %>% select(-POSTALCODE))
+    updateSelectInput(session, "gcs_fields", choices = head)
   })
   
-  observeEvent(input$geo_button, {
+  data_df <- eventReactive(input$geo_button, {
     postal_field <- input$upload_field
     
     in_postal <- read.csv(input$geo_input$datapath) %>% select(postal_field) %>% rename(POSTALCODE = postal_field)
-
-    gcs_data <- read.csv(paste0("data/", input$gcs_version, ".csv")) %>%
-      select(POSTALCODE, input$gcs_fields)
+    
+    if ("ACTIVE" %in% input$gcs_fields) {
+      fields <- input$gcs_fields
+    } else {
+      fields <- c(input$gcs_fields, "ACTIVE")
+    }
+    
+    gcs_data <- readRDS(paste0("data/", input$gcs_version, ".rds")) %>%
+      select(POSTALCODE, fields)
     
     join_data <- in_postal %>%
       left_join(gcs_data, by = "POSTALCODE")
+  })
     
-    output$geo_progress <- renderText("Done")
+  ## reactive resetButton send analytics when reset ----
+  observeEvent(input$resetButton, {
     
-    output$download_button <- downloadHandler(
-      filename = function() {
-        "gcs_results.csv"
-      },
-      content = function(file_geocoded) {
-        write.csv(join_data, file_geocoded, row.names = FALSE)
-      }
-    )
-
-    enable("download_button")
+    ga_collect_event(event_category = "resetButton", event_label = "Reset", event_action = "Reset application")
+    
+    ## just reload the session
+    session$reload()
+    
   })
   
-  output$geo_progress <- renderText("Click the button above to begin geocoding.")
+  ## reactive send analytics when download ----
+  rv <- reactiveValues(download_flag = 0)
+  
+  observeEvent(rv$download_flag, {
+    
+    ga_collect_event(event_category = "downloadButton", event_label = paste0("Download: ", input$gcs_version), event_action = "Download data")
+    
+  }, ignoreInit = TRUE)
+  
+  ## reactive send analytics when query table ----
+  observeEvent(input$goButton, {
+    
+    ga_collect_event(event_category = "goButton", event_label = paste0("Query: ", input$gcs_version), event_action = "Generate data")
+    
+  })
+  
+  output$download_button <- downloadHandler(
+    filename = function() {
+      "gcs_results.csv"
+    },
+    content = function(file_geocoded) {
+      write.csv(data_df(), file_geocoded, row.names = FALSE, na = "")
+      rv$download_flag <- rv$download_flag + 1
+    }
+  )
+  
+  output$table <- DT::renderDataTable(datatable({
+    
+    ## call function to create specified data table
+    data_df()
+      
+    },
+    filter="none",
+    ## table options: https://shiny.rstudio.com/articles/datatables.html
+    options = list(
+      pageLength = 10,       ## show only X rows/page; https://datatables.net/reference/option/pageLength
+      lengthMenu = c(10, 20, 25, 50), ## choices of pageLength to display
+      scrollX = TRUE,        ## allows horizontal scrolling; https://datatables.net/reference/option/scrollX
+      dom ="ltpi"
+    )
+    )
+  )
   
   output$downloadLookup <- downloadHandler(
-    filename = function() {
-      "GCS_Lookup_Table.xlsx"
-    },
-    content = function(geo_file) {
-      file.copy("GCS_Lookup_Table_201907.xlsx", geo_file)
+    filename = "GCS_Lookup_Table.xlsx",
+    content = function(file) {
+      file.copy("data/GCS_Lookup_Table.xlsx", file)
     }
   )
   
   output$downloadGuide <- downloadHandler(
-    filename = function() {
-      "GCS_User_Guide.pdf"
-    },
+    filename = "GCS_User_Guide.pdf",
     content = function(file) {
-      file.copy("GCS_Definitions_20190716.pdf", file)
+      file.copy("data/GCS_User_Guide.pdf", file)
     }
   )
-  
-  disable("download_button")
 }
-
 
 shinyApp(ui = ui, server = server)
