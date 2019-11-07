@@ -1,2 +1,2 @@
 # GCS
-Temporary repo for the development of the GeoCoding Self-service app
+Repository for the development of the GeoCoding Self-service app
