@@ -38,7 +38,7 @@ ui <- fluidPage(title = "Geocoding Self-Service",
 
       fluidRow(
         column(width = 12, 
-               style = "background-color:#003366; border-bottom:2px solid #fcba19;",
+               style = "background-color:#003366; border-bottom:2px solid #fcba19; position:fixed; z-index:10000",
                tags$header(class="header", style="padding:0 0px 0 0px; display:flex; height:80px; width:100%;",
                            tags$div(class="banner", style="display:flex; justify-content:flex-start; align-items:center; margin: 0 10px 0 10px",
                                     a(href="https://www2.gov.bc.ca/gov/content/data/about-data-management/bc-stats",
@@ -51,7 +51,7 @@ ui <- fluidPage(title = "Geocoding Self-Service",
         ),
         column(width = 12,
                tags$fieldset(
-                 tags$legend(h2("How to use the geocoding self-service application")),
+                 tags$legend(h2("How to use the geocoding self-service application", style="margin-top:90px")),
                  p("To use the geocoding self-service (GCS), follow the instructions below. You can also download the user guide to access more detailed instructions
                    and definitions of all the fields available. Lookup tables linking boundary codes to regions' names can also be downloaded."),
                  tags$ol(
