@@ -12,7 +12,7 @@
 
 #####
 # METADATA for app
-updateDate <- "September 2019"
+updateDate <- "March 2020"
 
 ## load libraries  ----
 ## installs any missing packages this script uses
@@ -23,6 +23,7 @@ if (!require('rsconnect')) install.packages('rsconnect')
 if (!require('DT')) install.packages('DT')
 if (!require('GAlogger')) devtools::install_github("bnosac/GAlogger")
 if (!require('data.table')) install.packages('data.table')
+if (!require('tools')) install.packages('tools')
 
 options(stringsAsFactors = FALSE)
 options(shiny.maxRequestSize=100*1024^2)
@@ -101,8 +102,8 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                           column(width = 6,
                                  
                                  fileInput(inputId = "geo_input", 
-                                           label = h4("File to geocode (.csv):"),
-                                           accept = c(".csv"),
+                                           label = h4("File to geocode (.csv, .xls, .xlsx):"),
+                                           accept = c(".csv", ".xls", ".xlsx"),
                                            buttonLabel = "Browse...",
                                            placeholder = NULL
                                            ),
@@ -136,7 +137,7 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                    column(width = 12,
                           actionButton(inputId = "geo_button", label = "Geocode input file"),
                           actionButton(inputId = "resetButton", label = "Reset selection"),
-                          downloadButton(outputId = "download_button", label = "Download results")
+                          downloadButton(outputId = "download_button", label = "Download results (.csv)")
                    )
                  ),
                  
@@ -180,8 +181,16 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$geo_input, {
-    head <- colnames(read.csv(input$geo_input$datapath))
-    updateSelectInput(session, "upload_field", choices = list(head))
+    extension <- tolower(file_ext(input$geo_input$datapath))
+    
+    if (extension %in% c("csv")){
+      head <- colnames(read.csv(input$geo_input$datapath))
+    } else if (extension %in% c("xls", "xlsx")) {
+      head <- colnames(readxl::read_excel(input$geo_input$datapath, n_max = 10))
+    } else {
+      stop()
+    }
+    updateSelectInput(session, "upload_field", choices = head)
   })
   
   observeEvent(input$gcs_version, {
@@ -192,7 +201,14 @@ server <- function(input, output, session) {
   data_df <- eventReactive(input$geo_button, {
     postal_field <- input$upload_field
     
-    in_postal <- read.csv(input$geo_input$datapath) %>% select(postal_field) %>% rename(POSTALCODE = postal_field)
+    extension <- tolower(file_ext(input$geo_input$datapath))
+    if (extension %in% c("csv")){
+      in_postal <- read.csv(input$geo_input$datapath) %>% select(postal_field) %>% rename(POSTALCODE = postal_field)
+    } else if (extension %in% c("xls", "xlsx")) {
+      in_postal <- readxl::read_excel(input$geo_input$datapath) %>% select(postal_field) %>% rename(POSTALCODE = postal_field)
+    } else {
+      stop()
+    }
     
     if ("ACTIVE" %in% input$gcs_fields) {
       fields <- input$gcs_fields
