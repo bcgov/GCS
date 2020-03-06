@@ -238,14 +238,14 @@ server <- function(input, output, session) {
   
   observeEvent(rv$download_flag, {
     
-    ga_collect_event(event_category = "downloadButton", event_label = paste0("Download: ", input$gcs_version), event_action = "Download data")
+    ga_collect_event(event_category = "downloadButtonUserVersion", event_label = paste0("User/Version/", session$user, "/", input$gcs_version), event_action = "Download data username/version")
     
   }, ignoreInit = TRUE)
   
   ## reactive send analytics when query table ----
-  observeEvent(input$goButton, {
+  observeEvent(input$geo_button, {
     
-    ga_collect_event(event_category = "goButton", event_label = paste0("Query: ", input$gcs_version), event_action = "Generate data")
+    ga_collect_event(event_category = "geoButtonUserVersionLength", event_label = paste0("User/Version/Length/", session$user, "/", input$gcs_version, "/", length(data_df()$POSTALCODE)), event_action = "Generate data username/version/length")
     
   })
   
