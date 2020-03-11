@@ -56,7 +56,7 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                  p("To use the geocoding self-service (GCS), follow the instructions below. You can also download the user guide to access more detailed instructions
                    and definitions of all the fields available. Lookup tables linking boundary codes to regions' names can also be downloaded."),
                  tags$ol(
-                   tags$li("Select a file to geocode by clicking the Browse button below. The file should be in .csv (comma-separated values) format
+                   tags$li("Select a file to geocode by clicking the Browse button below. The file should be in .csv, .xls or .xlsx format
                  and include at least one column with a header listing the postal codes to be geocoded."),
                    tags$li("Select the field from your file containing the postal codes to be geocoded."),
                    tags$li("Select the GCS version to use. A new version is released every quarter following the naming convention GCS_YYYYMM."),
