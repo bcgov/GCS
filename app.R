@@ -57,7 +57,8 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                    and definitions of all the fields available. Lookup tables linking boundary codes to regions' names can also be downloaded."),
                  tags$ol(
                    tags$li("Select a file to geocode by clicking the Browse button below. The file should be in .csv, .xls or .xlsx format
-                 and include at least one column with a header listing the postal codes to be geocoded."),
+                 and include at least one column with a header listing the postal codes to be geocoded. Postal codes should be in the 
+                           A1B2C3 format, else, GCS will remove white spaces and capitalize letters from user-provided postal codes."),
                    tags$li("Select the field from your file containing the postal codes to be geocoded."),
                    tags$li("Select the GCS version to use. A new version is released every quarter following the naming convention GCS_YYYYMM."),
                    tags$li("Select the GCS fields you want your postal codes to be geocoded to. Use the Ctrl or Shift key to select multiple entries."),
@@ -209,6 +210,8 @@ server <- function(input, output, session) {
     } else {
       stop()
     }
+    
+    in_postal$POSTALCODE <- toupper(gsub(" ", "", in_postal$POSTALCODE)) # Remove white spaces and make everything capitalized
     
     if ("ACTIVE" %in% input$gcs_fields) {
       fields <- input$gcs_fields
