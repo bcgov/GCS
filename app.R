@@ -204,9 +204,9 @@ server <- function(input, output, session) {
     
     extension <- tolower(file_ext(input$geo_input$datapath))
     if (extension %in% c("csv")){
-      in_postal <- read.csv(input$geo_input$datapath) %>% select(postal_field) %>% rename(POSTALCODE = postal_field)
+      in_postal <- read.csv(input$geo_input$datapath) %>% rename(POSTALCODE = postal_field)
     } else if (extension %in% c("xls", "xlsx")) {
-      in_postal <- readxl::read_excel(input$geo_input$datapath) %>% select(postal_field) %>% rename(POSTALCODE = postal_field)
+      in_postal <- readxl::read_excel(input$geo_input$datapath) %>% rename(POSTALCODE = postal_field)
     } else {
       stop()
     }
