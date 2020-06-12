@@ -195,8 +195,21 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$gcs_version, {
-    head <- colnames(readRDS(paste0("data/", input$gcs_version, ".rds")) %>% select(-POSTALCODE))
-    updateSelectInput(session, "gcs_fields", choices = head)
+    # Hardcode the order of fields to the historical one so clients do not have to redevelop systems.
+    # If a new fields is added it will be at the end
+    head <- colnames(readRDS(paste0("data/", input$gcs_version, ".rds")) %>% 
+                       select(-POSTALCODE))
+    # list all possible fields
+    all_ordered <- c('MEP_ID', 'POSTALCODE', 'SLI', 'PROV', 'BIRTH_DATE', 'RET_DATE', 'LATITUDE', 'LONGITUDE', 'COMM_NAME', 'CD_2011', 'CSD_2011', 'CDCSD_2011', 'MUN_NAME_2011', 'CMACA_2011', 'CT_2011', 'DA_2011', 'DPL_2011', 'DR_2011', 'CD_2016', 'CSD_2016', 'CDCSD_2016', 'MUN_NAME_2016', 'CMACA_2016', 'CT_2016', 'DA_2016', 'DPL_2016', 'DR_2016', 'HA', 'HSDA', 'LHA', 'MHA', 'MCFD', 'MCFD_SDA', 'MCFD_LSA', 'PED_1999', 'PED_2009', 'PED_2015', 'SD', 'CR', 'FED_2011', 'FED_2016', 'RESP', 'TOURISM', 'CHSA', 'LHA_PRE_2018', 'DB_2016', 'GZ', 'TEA', 'POPCTR_2016', 'COMM_MUN_NAME_2016', 'COMM_CDCSD_2016', 'SOURCE', 'SBC', 'TSA', 'ACTIVE')
+    
+    # which possible fields are used in selected gcs version, we do it this way so we keep the order
+    # from all_ordered for output
+    all_in_head <- all_ordered %in% head
+    
+    # keep existing fields in order
+    ordered_head <- all_ordered[which(all_in_head == TRUE)]
+
+    updateSelectInput(session, "gcs_fields", choices = ordered_head)
   })
   
   data_df <- eventReactive(input$geo_button, {
