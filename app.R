@@ -12,7 +12,7 @@
 
 #####
 # METADATA for app
-updateDate <- "March 2020"
+updateDate <- "June 2020" # <<---- Update with release version
 
 ## load libraries  ----
 ## installs any missing packages this script uses
@@ -195,7 +195,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$gcs_version, {
-    # Hardcode the order of fields to the historical one so clients do not have to redevelop systems.
+    # NOTE: Hardcode the order of fields to the historical one so clients do not have to redevelop systems.
     # If a new fields is added it will be at the end
     head <- colnames(readRDS(paste0("data/", input$gcs_version, ".rds")) %>% 
                        select(-POSTALCODE))
