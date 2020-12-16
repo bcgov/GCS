@@ -4,6 +4,7 @@
 .Ruserdata
 *.Rproj
 *.lnk
+*.docx
 # data files
 *.html
 *.xlsx
@@ -11,3 +12,4 @@
 *.rds
 /app/data/*
 /sandbox/*
+rsconnect/
