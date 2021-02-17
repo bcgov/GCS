@@ -12,7 +12,7 @@
 
 #####
 # METADATA for app
-updateDate <- "September 2020" # <<---- Update with release version
+updateDate <- "January 2021" # <<---- Update with release version
 
 ## load libraries  ----
 ## installs any missing packages this script uses
