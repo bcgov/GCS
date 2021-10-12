@@ -12,7 +12,7 @@
 
 #####
 # METADATA for app
-updateDate <- "January 2021" # <<---- Update with release version
+updateDate <- "June 2021" # <<---- Update with release version
 
 ## load libraries  ----
 ## installs any missing packages this script uses
@@ -64,8 +64,8 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                    tags$li("Select the GCS fields you want your postal codes to be geocoded to. Use the Ctrl or Shift key to select multiple entries."),
                    tags$li("Click the 'Geocode Input File' button to begin the process. It should take a few seconds. 
                            When geocoding is done, results will appear in a table. Note that the table will always include the 'ACTIVE' field to indicate
-                           if a postal code was in use (Y) or retired (N) for the selected GCS version."),
-                   tags$li("Click the 'Download Results' button to retrieve a .csv copy of your geocoded postal codes."),
+                           if a postal code was in use (Y) or retired (N) for the selected GCS version. Once the file is geocoded, two download buttons will appear."),
+                   tags$li("Click one of the 'Download Results' buttons to retrieve either a .csv or .txt copy of your geocoded postal codes."),
                    style="font-size:14px; color:#494949"
                    ),
                  br()
@@ -136,10 +136,11 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                  tags$fieldset(
                    tags$legend(h3("Actions")),
                    column(width = 12,
-                          actionButton(inputId = "geo_button", label = "Geocode input file"),
-                          actionButton(inputId = "resetButton", label = "Reset selection"),
-                          downloadButton(outputId = "download_button", label = "Download results (.csv)")
-                   )
+                          tags$div(style = "display:inline-block", actionButton(inputId = "geo_button", label = "Geocode input file")),
+                          tags$div(style = "display:inline-block", actionButton(inputId = "resetButton", label = "Reset selection")),
+                          tags$div(style = "display:inline-block", uiOutput(outputId = "download_button_csv")),
+                          tags$div(style = "display:inline-block", uiOutput(outputId = "download_button_txt"))
+                          )
                  ),
                  
                  br(),br(),
@@ -262,15 +263,27 @@ server <- function(input, output, session) {
   observeEvent(input$geo_button, {
     
     ga_collect_event(event_category = "geoButtonUserVersionLength", event_label = paste0("User/Version/Length/", session$user, "/", input$gcs_version, "/", length(data_df()$POSTALCODE)), event_action = "Generate data username/version/length")
+    output$download_button_csv <-renderUI({downloadButton('download_file_csv', label = 'Download results (.csv)') })
+    output$download_button_txt <-renderUI({downloadButton('download_file_txt', label = 'Download results (.txt)') })
     
   })
   
-  output$download_button <- downloadHandler(
+  output$download_file_csv <- downloadHandler(
     filename = function() {
       "gcs_results.csv"
     },
     content = function(file_geocoded) {
-      write.csv(data_df(), file_geocoded, row.names = FALSE, na = "")
+      write_csv(data_df(), file_geocoded, na = "")
+      rv$download_flag <- rv$download_flag + 1
+    }
+  )
+  
+  output$download_file_txt <- downloadHandler(
+    filename = function() {
+      "gcs_results.txt"
+    },
+    content = function(file_geocoded) {
+      write_delim(data_df(), file_geocoded, delim = ",",na = "")
       rv$download_flag <- rv$download_flag + 1
     }
   )

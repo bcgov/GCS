@@ -13,3 +13,4 @@
 /app/data/*
 /sandbox/*
 rsconnect/
+*Thumbs.db
