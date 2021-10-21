@@ -12,7 +12,7 @@
 
 #####
 # METADATA for app
-updateDate <- "June 2021" # <<---- Update with release version
+updateDate <- "September 2021" # <<---- Update with release version
 
 ## load libraries  ----
 ## installs any missing packages this script uses
@@ -24,6 +24,7 @@ if (!require('DT')) install.packages('DT')
 if (!require('GAlogger')) devtools::install_github("bnosac/GAlogger")
 if (!require('data.table')) install.packages('data.table')
 if (!require('tools')) install.packages('tools')
+if (!require('openxlsx')) install.packages('openxlsx')
 
 options(stringsAsFactors = FALSE)
 options(shiny.maxRequestSize=100*1024^2)
@@ -65,7 +66,7 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                    tags$li("Click the 'Geocode Input File' button to begin the process. It should take a few seconds. 
                            When geocoding is done, results will appear in a table. Note that the table will always include the 'ACTIVE' field to indicate
                            if a postal code was in use (Y) or retired (N) for the selected GCS version. Once the file is geocoded, two download buttons will appear."),
-                   tags$li("Click one of the 'Download Results' buttons to retrieve either a .csv or .txt copy of your geocoded postal codes."),
+                   tags$li("Click one of the 'Download Results' buttons to retrieve either a .csv or .xlsx copy of your geocoded postal codes."),
                    style="font-size:14px; color:#494949"
                    ),
                  br()
@@ -139,7 +140,7 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                           tags$div(style = "display:inline-block", actionButton(inputId = "geo_button", label = "Geocode input file")),
                           tags$div(style = "display:inline-block", actionButton(inputId = "resetButton", label = "Reset selection")),
                           tags$div(style = "display:inline-block", uiOutput(outputId = "download_button_csv")),
-                          tags$div(style = "display:inline-block", uiOutput(outputId = "download_button_txt"))
+                          tags$div(style = "display:inline-block", uiOutput(outputId = "download_button_xlsx"))
                           )
                  ),
                  
@@ -218,9 +219,9 @@ server <- function(input, output, session) {
     
     extension <- tolower(file_ext(input$geo_input$datapath))
     if (extension %in% c("csv")){
-      in_postal <- read.csv(input$geo_input$datapath) %>% rename(POSTALCODE = postal_field)
+      in_postal <- read.csv(input$geo_input$datapath) %>% rename(POSTALCODE = rlang::sym(postal_field))
     } else if (extension %in% c("xls", "xlsx")) {
-      in_postal <- readxl::read_excel(input$geo_input$datapath) %>% rename(POSTALCODE = postal_field)
+      in_postal <- readxl::read_excel(input$geo_input$datapath) %>% rename(POSTALCODE = rlang::sym(postal_field))
     } else {
       stop()
     }
@@ -234,7 +235,7 @@ server <- function(input, output, session) {
     }
     
     gcs_data <- readRDS(paste0("data/", input$gcs_version, ".rds")) %>%
-      select(POSTALCODE, fields)
+      select(POSTALCODE, all_of(fields))
     
     join_data <- in_postal %>%
       left_join(gcs_data, by = "POSTALCODE")
@@ -264,7 +265,7 @@ server <- function(input, output, session) {
     
     ga_collect_event(event_category = "geoButtonUserVersionLength", event_label = paste0("User/Version/Length/", session$user, "/", input$gcs_version, "/", length(data_df()$POSTALCODE)), event_action = "Generate data username/version/length")
     output$download_button_csv <-renderUI({downloadButton('download_file_csv', label = 'Download results (.csv)') })
-    output$download_button_txt <-renderUI({downloadButton('download_file_txt', label = 'Download results (.txt)') })
+    output$download_button_xlsx <-renderUI({downloadButton('download_file_xlsx', label = 'Download results (Excel)') })
     
   })
   
@@ -278,12 +279,12 @@ server <- function(input, output, session) {
     }
   )
   
-  output$download_file_txt <- downloadHandler(
+  output$download_file_xlsx <- downloadHandler(
     filename = function() {
-      "gcs_results.txt"
+      "gcs_results.xlsx"
     },
     content = function(file_geocoded) {
-      write_delim(data_df(), file_geocoded, delim = ",",na = "")
+      write.xlsx(data_df(), file_geocoded)
       rv$download_flag <- rv$download_flag + 1
     }
   )
