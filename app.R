@@ -12,7 +12,7 @@
 
 #####
 # METADATA for app
-updateDate <- "September 2021" # <<---- Update with release version
+updateDate <- "June 2023" # <<---- Update with release version
 
 ## load libraries  ----
 ## installs any missing packages this script uses
@@ -21,7 +21,7 @@ if (!require('shiny')) install.packages('shiny')
 if (!require('shinydashboard')) install.packages('shinydashboard')
 if (!require('rsconnect')) install.packages('rsconnect')
 if (!require('DT')) install.packages('DT')
-if (!require('GAlogger')) devtools::install_github("bnosac/GAlogger")
+# if (!require('GAlogger')) devtools::install_github("bnosac/GAlogger")
 if (!require('data.table')) install.packages('data.table')
 if (!require('tools')) install.packages('tools')
 if (!require('openxlsx')) install.packages('openxlsx')
@@ -29,9 +29,9 @@ if (!require('openxlsx')) install.packages('openxlsx')
 options(stringsAsFactors = FALSE)
 options(shiny.maxRequestSize=100*1024^2)
 
-ga_set_tracking_id("UA-150850915-4")
-ga_set_approval(consent = TRUE)
-ga_collect_pageview(page = "/GCS_app")
+# ga_set_tracking_id("UA-150850915-4")
+# ga_set_approval(consent = TRUE)
+# ga_collect_pageview(page = "/GCS_app")
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(title = "Geocoding Self-Service", 
@@ -91,7 +91,7 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                    ),
                    br(), 
                    tags$fieldset(
-                     tags$legend(h3("Additonal information")),
+                     tags$legend(h3("Additional information")),
                      HTML(paste0("Produced by BC Stats ", "<br>", "Last updated: ", updateDate))
                    )
                
@@ -117,7 +117,7 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                                              size = 5),
                                  selectInput(inputId = "gcs_version",
                                              label = h4("GCS version to use:"),
-                                             choice = sort(str_replace(list.files("data", pattern = "*.rds"), ".rds", ""), decreasing = TRUE),
+                                             choice = sort(str_replace(list.files("data", pattern = "\\.rds$"), ".rds", ""), decreasing = TRUE),
                                              selectize= FALSE,
                                              multiple = FALSE,
                                              size = 5)
@@ -176,7 +176,7 @@ server <- function(input, output, session) {
   ## reactive resetButton send analytics when reset ----
   observeEvent(input$resetButton, {
     
-    ga_collect_event(event_category = "resetButton", event_label = "Reset", event_action = "Reset application")
+    #ga_collect_event(event_category = "resetButton", event_label = "Reset", event_action = "Reset application")
     
     ## just reload the session
     session$reload()
@@ -202,7 +202,13 @@ server <- function(input, output, session) {
     head <- colnames(readRDS(paste0("data/", input$gcs_version, ".rds")) %>% 
                        select(-POSTALCODE))
     # list all possible fields
-    all_ordered <- c('MEP_ID', 'POSTALCODE', 'SLI', 'PROV', 'BIRTH_DATE', 'RET_DATE', 'LATITUDE', 'LONGITUDE', 'COMM_NAME', 'CD_2011', 'CSD_2011', 'CDCSD_2011', 'MUN_NAME_2011', 'CMACA_2011', 'CT_2011', 'DA_2011', 'DPL_2011', 'DR_2011', 'CD_2016', 'CSD_2016', 'CDCSD_2016', 'MUN_NAME_2016', 'CMACA_2016', 'CT_2016', 'DA_2016', 'DPL_2016', 'DR_2016', 'HA', 'HSDA', 'LHA', 'MHA', 'MCFD', 'MCFD_SDA', 'MCFD_LSA', 'PED_1999', 'PED_2009', 'PED_2015', 'SD', 'CR', 'FED_2011', 'FED_2016', 'RESP', 'TOURISM', 'CHSA', 'LHA_PRE_2018', 'DB_2016', 'GZ', 'TEA', 'POPCTR_2016', 'COMM_MUN_NAME_2016', 'COMM_CDCSD_2016', 'SOURCE', 'SBC', 'TSA', 'ACTIVE')
+    all_ordered <- c('MEP_ID', 'POSTALCODE', 'SLI', 'PROV', 'BIRTH_DATE', 'RET_DATE', 'LATITUDE', 'LONGITUDE', 'COMM_NAME', 
+                     'CD_2011', 'CSD_2011', 'CDCSD_2011', 'MUN_NAME_2011', 'CMACA_2011', 'CT_2011', 'DA_2011', 'DPL_2011', 'DR_2011', 
+                     'CD_2016', 'CSD_2016', 'CDCSD_2016', 'MUN_NAME_2016', 'CMACA_2016', 'CT_2016', 'DA_2016', 'DPL_2016', 'DR_2016',
+                     'CD_2021', 'CSD_2021', 'CDCSD_2021', 'MUN_NAME_2021', 'CMACA_2021', 'CT_2021', 'DA_2021', 'DPL_2021', 'DR_2021',
+                     'HA', 'HSDA', 'LHA', 'MHA', 'MCFD', 'MCFD_SDA', 'MCFD_LSA', 'PED_1999', 'PED_2009', 'PED_2015', 'SD', 'CR', 
+                     'FED_2011', 'FED_2016', 'FED_2021', 'RESP', 'TOURISM', 'CHSA', 'LHA_PRE_2018', 'DB_2016', 'DB_2021', 'GZ', 'TEA', 
+                     'POPCTR_2016', 'POPCTR_2021', 'SOURCE', 'SBC', 'TSA', 'WorkBC','ACTIVE')
     
     # which possible fields are used in selected gcs version, we do it this way so we keep the order
     # from all_ordered for output
@@ -244,7 +250,7 @@ server <- function(input, output, session) {
   ## reactive resetButton send analytics when reset ----
   observeEvent(input$resetButton, {
     
-    ga_collect_event(event_category = "resetButton", event_label = "Reset", event_action = "Reset application")
+    #ga_collect_event(event_category = "resetButton", event_label = "Reset", event_action = "Reset application")
     
     ## just reload the session
     session$reload()
@@ -256,14 +262,14 @@ server <- function(input, output, session) {
   
   observeEvent(rv$download_flag, {
     
-    ga_collect_event(event_category = "downloadButtonUserVersion", event_label = paste0("User/Version/", session$user, "/", input$gcs_version), event_action = "Download data username/version")
+    #ga_collect_event(event_category = "downloadButtonUserVersion", event_label = paste0("User/Version/", session$user, "/", input$gcs_version), event_action = "Download data username/version")
     
   }, ignoreInit = TRUE)
   
   ## reactive send analytics when query table ----
   observeEvent(input$geo_button, {
     
-    ga_collect_event(event_category = "geoButtonUserVersionLength", event_label = paste0("User/Version/Length/", session$user, "/", input$gcs_version, "/", length(data_df()$POSTALCODE)), event_action = "Generate data username/version/length")
+   # ga_collect_event(event_category = "geoButtonUserVersionLength", event_label = paste0("User/Version/Length/", session$user, "/", input$gcs_version, "/", length(data_df()$POSTALCODE)), event_action = "Generate data username/version/length")
     output$download_button_csv <-renderUI({downloadButton('download_file_csv', label = 'Download results (.csv)') })
     output$download_button_xlsx <-renderUI({downloadButton('download_file_xlsx', label = 'Download results (Excel)') })
     
