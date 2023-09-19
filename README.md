@@ -1,6 +1,6 @@
 # GCS
 
-[![img](https://img.shields.io/badge/Lifecycle-Maturing-007EC6)]
+[![img](https://img.shields.io/badge/Lifecycle-Maturing-007EC6)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
 
 Repository for the development of the GeoCoding Self-service app
 

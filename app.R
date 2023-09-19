@@ -26,7 +26,7 @@
 
 #####
 # METADATA for app
-updateDate <- "June 2023" # <<---- Update with release version
+updateDate <- "September 2023" # <<---- Update with release version
 
 ## load libraries  ----
 ## installs any missing packages this script uses
@@ -106,7 +106,9 @@ ui <- fluidPage(title = "Geocoding Self-Service",
                    br(), 
                    tags$fieldset(
                      tags$legend(h3("Additional information")),
-                     HTML(paste0("Produced by BC Stats ", "<br>", "Last updated: ", updateDate))
+                     HTML("Produced by BC Stats "),
+                     tags$a(href = "https://github.com/bcgov/GCS", icon("github")),
+                     HTML(paste0("<br>", "Last updated: ", updateDate))
                    )
                
                ),
@@ -236,6 +238,8 @@ server <- function(input, output, session) {
   
   data_df <- eventReactive(input$geo_button, {
     postal_field <- input$upload_field
+    
+    if(is.null(postal_field)) {stop("Select which field in your data contains postal codes")}
     
     extension <- tolower(file_ext(input$geo_input$datapath))
     if (extension %in% c("csv")){
